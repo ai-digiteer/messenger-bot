@@ -76,40 +76,43 @@ async def verify(request: Request):
         return PlainTextResponse("Forbidden", status_code=403)
 
 
-@app.post("/webhook")
-async def handle_messages(request: Request):
-    body = await request.json()
-    if body.get("object") == "page":
-        for entry in body.get("entry", []):
-            for messaging_event in entry.get("messaging", []):
-                if "message" in messaging_event:
-                    sender_id = messaging_event["sender"]["id"]
-                    message_text = messaging_event["message"].get("text")
-                    logger.info(f"Message from {sender_id}: {message_text}")
+@app.api_route("/webhook", methods=["GET", "POST"])
+async def webhook(request: Request):
+    if request.method == "GET":
+        # Webhook Verification Step
+        params = dict(request.query_params)
+        mode = params.get("hub.mode")
+        token = params.get("hub.verify_token")
+        challenge = params.get("hub.challenge")
 
-                    if message_text:
-                        chat_id = sender_id
-                        sender_map[chat_id] = {
+        if mode == "subscribe" and token == VERIFY_TOKEN:
+            logger.info("[Webhook Verified]")
+            return PlainTextResponse(content=challenge, status_code=200)
+        else:
+            return PlainTextResponse("Forbidden", status_code=403)
+
+    # Handle POST Webhook events
+    if request.method == "POST":
+        body = await request.json()
+        logger.info(f"Incoming webhook: {body}")
+
+        if body.get("object") == "page":
+            for entry in body.get("entry", []):
+                for messaging_event in entry.get("messaging", []):
+                    if "message" in messaging_event:
+                        sender_id = messaging_event["sender"]["id"]
+                        message_text = messaging_event["message"].get("text")
+                        logger.info(f"Message from {sender_id}: {message_text}")
+
+                        sender_map[sender_id] = {
                             "sender_id": sender_id,
                             "last_active": time.time()
                         }
-                        logger.info(f"Updated sender_map: {sender_map}")
 
                         dx_payload = {
-                            "chat_id": chat_id,
+                            "chat_id": sender_id,
                             "user_message": message_text,
-                            "file_ids": [
-                                "4eb53f62-d860-457f-bc00-fee11b31f190",
-                                "a933342b-8332-492e-a494-8e676af0ac0e",
-                                "b4d6024c-8bdb-4bfe-ab5c-abaea50b6461",
-                                "bff88d57-c61a-4e41-9295-3839ae47656a",
-                                "1b48046c-756a-49f5-af68-a615fcf520a7",
-                                "5bf8a7fb-9126-42d4-b405-1b909c656854",
-                                "7f63b10d-5073-4414-a7fa-2526d1526044",
-                                "1dae7954-a9c0-4966-9916-3e192d6c23f9",
-                                "a126c441-b0d9-4842-9d1e-d72182f5dffb",
-                                "b50962d3-8006-49bf-9502-34bcb6f19213"
-                            ],
+                            "file_ids": [],
                             "file_urls": [],
                             "callback_type": "messenger"
                         }
@@ -121,11 +124,11 @@ async def handle_messages(request: Request):
                                 timeout=5
                             )
                             dx_response.raise_for_status()
-                            logger.info(f"Sent message to DX API: {dx_response.status_code}")
-                        except requests.RequestException as e:
-                            logger.error(f"Failed to send message to DX API: {e}")
+                        except Exception as e:
+                            logger.error(f"DX API Error: {e}")
 
-    return {"status": "ok"}
+        return {"status": "ok"}
+
 
 
 @app.post("/dx-result")
