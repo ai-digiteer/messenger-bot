@@ -104,15 +104,29 @@ async def webhook(request: Request):
                         message_text = messaging_event["message"].get("text")
                         logger.info(f"Message from {sender_id}: {message_text}")
 
-                        sender_map[sender_id] = {
+                    if message_text:
+                        chat_id = sender_id
+                        sender_map[chat_id] = {
                             "sender_id": sender_id,
                             "last_active": time.time()
                         }
+                        logger.info(f"Updated sender_map: {sender_map}")
 
                         dx_payload = {
-                            "chat_id": sender_id,
+                            "chat_id": chat_id,
                             "user_message": message_text,
-                            "file_ids": [],
+                            "file_ids": [
+                                "4eb53f62-d860-457f-bc00-fee11b31f190",
+                                "a933342b-8332-492e-a494-8e676af0ac0e",
+                                "b4d6024c-8bdb-4bfe-ab5c-abaea50b6461",
+                                "bff88d57-c61a-4e41-9295-3839ae47656a",
+                                "1b48046c-756a-49f5-af68-a615fcf520a7",
+                                "5bf8a7fb-9126-42d4-b405-1b909c656854",
+                                "7f63b10d-5073-4414-a7fa-2526d1526044",
+                                "1dae7954-a9c0-4966-9916-3e192d6c23f9",
+                                "a126c441-b0d9-4842-9d1e-d72182f5dffb",
+                                "b50962d3-8006-49bf-9502-34bcb6f19213"
+                            ],
                             "file_urls": [],
                             "callback_type": "messenger"
                         }
@@ -124,8 +138,9 @@ async def webhook(request: Request):
                                 timeout=5
                             )
                             dx_response.raise_for_status()
-                        except Exception as e:
-                            logger.error(f"DX API Error: {e}")
+                            logger.info(f"Sent message to DX API: {dx_response.status_code}")
+                        except requests.RequestException as e:
+                            logger.error(f"Failed to send message to DX API: {e}")
 
         return {"status": "ok"}
 
