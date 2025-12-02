@@ -110,7 +110,6 @@ async def webhook(request: Request):
                 file_ids = [
                     "9914f841-6181-4f74-9832-9c144faeb915",
                     "7232c4fb-b2ec-4653-9478-042d198a4487",
-                    "014d7b95-7d9b-4408-8ee3-f1a06e83a423",
                     "1708decb-dbb3-4a9e-81ab-97c6a72d6492",
                     "ae46c4a5-50a1-4e28-9053-48ee36bd650c"
                 ]
