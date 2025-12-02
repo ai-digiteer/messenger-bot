@@ -84,6 +84,9 @@ async def webhook(request: Request):
                 if "message" not in event:
                     continue
 
+                if event["message"].get("is_echo"):
+                    continue
+                    
                 sender_id = event["sender"]["id"]
                 message_text = event["message"].get("text")
                 attachments = event["message"].get("attachments", [])
