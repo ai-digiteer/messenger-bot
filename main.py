@@ -108,10 +108,8 @@ async def webhook(request: Request):
 
                 # Your STATIC file_ids list
                 file_ids = [
-                    "9914f841-6181-4f74-9832-9c144faeb915",
-                    "7232c4fb-b2ec-4653-9478-042d198a4487",
-                    "1708decb-dbb3-4a9e-81ab-97c6a72d6492",
-                    "ae46c4a5-50a1-4e28-9053-48ee36bd650c"
+                    "53505c2d-3ef7-42bd-806e-facf23efa4f0",
+                    "e34c9b9d-93f9-431b-89b9-193aa703f49b"
                 ]
 
                 # Build payload for DX API
